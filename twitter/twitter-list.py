@@ -18,7 +18,6 @@ def main():
         match_exp = exp_file.read().splitlines()
 
     for list_id in list_ids:
-        print("list id ", list_id)
         for count, tweet in enumerate(TwitterListPostsScraper(list_id).get_items()):
             if count>1000:
                 break
