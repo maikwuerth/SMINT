@@ -18,8 +18,10 @@ def main():
         match_exp = exp_file.read().splitlines()
 
     for list_id in list_ids:
-        search = TwitterListPostsScraper(list_id).get_items()
-        for tweet in search:
+        print("list id ", list_id)
+        for count, tweet in enumerate(TwitterListPostsScraper(list_id).get_items()):
+            if count>1000:
+                break
             text = tweet.rawContent.lower()
             if matches_any(text, match_exp):
                 print({
