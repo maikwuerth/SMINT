@@ -57,11 +57,12 @@ def main():
             if matches_any(text, match_exp):
                 iocs = extract_ioc(text)
                 output.append({
-                    "IoCs": iocs,
+                    "iocs": iocs,
                     "tweet": tweet.rawContent,
-                    "url": tweet.url,
+                    "hashtags": tweet.hashtags,
+                    "url": tweet.url
                 })
-                print(iocs)
+                print({output[-1]['iocs'], output[-1]['hashtags']})
     json_output = json.dumps(output, indent=2)
     with open("output.json", "w") as out_file:
         out_file.write(json_output)
