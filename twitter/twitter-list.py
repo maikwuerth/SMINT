@@ -60,9 +60,14 @@ def main():
                     "iocs": iocs,
                     "tweet": tweet.rawContent,
                     "hashtags": tweet.hashtags,
-                    "url": tweet.url
+                    "url": tweet.url,
+                    "date": tweet.date
                 })
                 print({output[-1]['iocs'], output[-1]['hashtags']})
+    
+    # deduplicate output
+    output = [dict(tupl) for tupl in {tuple(dic.items()) for dic in output}]
+    # dump output to json file
     json_output = json.dumps(output, indent=2)
     with open("output.json", "w") as out_file:
         out_file.write(json_output)
