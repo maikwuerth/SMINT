@@ -1,0 +1,108 @@
+from snscrape.modules.twitter import *
+import re
+from pymisp import PyMISP, MISPEvent, MISPAttribute, MISPObject
+from datetime import date
+
+def get_attribute_type(attribute):
+    pattern = re.compile('^(\d{1,3}\.){3}\d{1,3}$')
+    if pattern.match(attribute):
+        return "ioc-ip"
+    pattern = re.compile('^(http|ftp)')
+    if pattern.match(attribute):
+        return "ioc-url"
+    else:
+        return "ioc-domain"
+
+# de-defang or refang urls, IPs, etc. 
+def refang(text):
+    text = text.replace("[", "")
+    text = text.replace("]", "")
+    text = text.replace("hxxp:", "http:")
+    text = text.replace("hxxps:", "https:")
+    text = text.replace("fxp:", "ftp:")
+    text = text.replace("fsxp:", "fstp:")
+    return text
+
+# return all links, IPs, urls contained in tweet. except t.co
+def extract_ioc(text):
+    text = refang(text)
+    matches = []
+    # match all urls
+    expression = "(?:https?:\\/\\/)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)"
+    pattern = re.compile(expression)
+    matches = pattern.findall(text)
+    # exclude twitter links and images starting with t.co
+    exclude = "\\/t\\.co\\/"
+    pattern = re.compile(exclude)
+    matches = [m for m in matches if not pattern.search(m)]
+    return matches
+
+# fast match any defanged urls, IPs, etc.
+def matches_any(text, expressions):
+    for exp in expressions:
+        pattern = re.compile(exp)
+        if pattern.search(text):
+            return True
+    return False
+
+def main():
+    # read ids of twitter lists to scrape
+    list_ids = []
+    with open('list-ids.txt') as list_file:
+        list_ids = list_file.read().splitlines()
+
+    # read regular expressions to match defanged urls
+    match_exp = []
+    with open('match-exp.txt') as exp_file:
+        match_exp = exp_file.read().splitlines()
+
+    output = []
+    # scrape 1000 tweets list by list
+    for list_id in list_ids:
+        print("starting list ", list_id)
+        for count, tweet in enumerate(TwitterListPostsScraper(list_id).get_items()):
+            if count>1000:
+                break
+            # match defanged
+            text = tweet.rawContent.lower()
+            if matches_any(text, match_exp):
+                iocs = extract_ioc(text)
+                output.append({
+                    "iocs": iocs,
+                    "text": tweet.rawContent,
+                    "hashtags": tweet.hashtags,
+                    "url": tweet.url,
+                    "date": tweet.date
+                })
+                print({output[-1]['iocs'], output[-1]['hashtags']})
+    
+    # deduplicate output
+    output = [dict(tupl) for tupl in {tuple(dic.items()) for dic in output}]
+    
+    # add results to MISP
+    # create todays MISP Event
+    misp_event = MISPEvent()
+    misp_event.info = f"Twitter OSINT - {date.today()}"
+    misp_event.add_tag('type:OSINT')
+
+    # add tweets to Event
+    for tweet in output:
+        search_result = PyMISP.search(controller="attributes", return_format="json", limit="1", value=tweet.url, type_attribute="link", )
+        # object already exist
+        if search_result.get('Attribute', []):
+            continue
+        misp_object = MISPObject("osint-tweet", misp_objects_path_custom="misp-objects")
+        misp_object.add_attribute("tweet-link", tweet.url)
+        misp_object.add_attribute("tweet-text", tweet.text)
+        misp_object.add_attribute("tweet-date", tweet.date)
+        for hashtag in tweet.hashtags:
+            misp_object.add_attribute("tweet-hashtag", hashtag)
+        for ioc in tweet.iocs:
+            misp_object.add_attribute(get_attribute_type(ioc), ioc)
+        misp_event.add_object(misp_object)
+    
+    # push MISPEvent
+
+
+if __name__ == '__main__':
+    main()
