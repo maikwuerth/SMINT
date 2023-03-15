@@ -1,0 +1,54 @@
+{
+    "description": "OSINT Tweet",
+    "meta-category": "misc",
+    "name": "osint-tweet",
+    "required": [
+      "tweet-link"
+    ],
+    "uuid": "389bc432-d54d-4cf4-97e3-774f54574a01",
+    "version": 1,
+    "attributes": {
+      "tweet-link": {
+        "description": "Link to original tweet",
+        "disable_correlation": true,
+        "misp-attribute": "link",
+        "ui-priority": 3
+      },
+      "tweet-text": {
+        "description": "Original tweet text",
+        "disable_correlation": true,
+        "misp-attribute": "text",
+        "ui-priority": 0
+      },
+      "hashtag": {
+        "description": "Hashtag from original tweet",
+        "disable_correlation": true,
+        "misp-attribute": "text",
+        "ui-priority": 2
+      },
+      "date": {
+        "description": "Date of original tweet",
+        "disable_correlation": true,
+        "misp-attribute": "datetime",
+        "ui-priority": 1
+      },
+      "ioc-ip": {
+        "description": "De-Defanged IP from tweet",
+        "disable_correlation": false,
+        "misp-attribute": "ip-dst",
+        "ui-priority": 1
+      },
+      "ioc-domain": {
+        "description": "De-Defanged Domain from tweet",
+        "disable_correlation": false,
+        "misp-attribute": "domain",
+        "ui-priority": 1
+      },
+      "ioc-url": {
+        "description": "De-Defanged link from tweet",
+        "disable_correlation": false,
+        "misp-attribute": "url",
+        "ui-priority": 1
+      }
+    }
+  }
