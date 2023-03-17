@@ -20,13 +20,13 @@
         "misp-attribute": "text",
         "ui-priority": 0
       },
-      "hashtag": {
+      "tweet-hashtag": {
         "description": "Hashtag from original tweet",
         "disable_correlation": true,
         "misp-attribute": "text",
         "ui-priority": 2
       },
-      "date": {
+      "tweet-date": {
         "description": "Date of original tweet",
         "disable_correlation": true,
         "misp-attribute": "datetime",
