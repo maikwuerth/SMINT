@@ -93,7 +93,7 @@ def main():
 
     
     # add results to MISP
-    pymisp = PyMISP(keys.misp_url, keys.misp_key False, 'json')
+    pymisp = PyMISP(keys.misp_url, keys.misp_key, False, 'json')
 
     # create todays MISP Event
     misp_event = MISPEvent()
