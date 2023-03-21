@@ -1,7 +1,7 @@
 from snscrape.modules.twitter import *
 import re
 from pymisp import ExpandedPyMISP, PyMISP, MISPEvent, MISPAttribute, MISPObject
-from datetime import date
+from datetime import datetime, date, timedelta
 import urllib3
 
 # add your own MISP instance and creds to keys.py
@@ -53,6 +53,8 @@ def matches_any(text, expressions):
     return False
 
 def main():
+    yesterday = date.today() - timedelta(days=1)
+
     # read ids of twitter lists to scrape
     list_ids = []
     with open('list-ids.txt') as list_file:
@@ -83,21 +85,28 @@ def main():
                 })
                 print({output[-1]['iocs'], output[-1]['hashtags']})
 
-    # deduplicate output
+    # filter output
     tmp = []
     for i in range(len(output)):
+        # deduplicate
         if output[i] not in output[i + 1:]:
-            tmp.append(output[i])
+            # only tweets from yesterday
+            result_date = datetime.strptime(output[i]['date'], "%Y-%m-%d %H:%M:%S%z")
+            if result_date > result_date.date():
+                tmp.append(output[i])
     
     output = tmp
 
+    # exit if we dont have any results
+    if len(output) == 0:
+        exit()
     
     # add results to MISP
     pymisp = PyMISP(keys.misp_url, keys.misp_key, False, 'json')
 
     # create todays MISP Event
     misp_event = MISPEvent()
-    misp_event.info = f'Twitter OSINT - {date.today()}'
+    misp_event.info = f'Twitter OSINT - {yesterday}'
     misp_event.add_tag('type:OSINT')
 
     # add tweets to Event
