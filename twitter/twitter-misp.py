@@ -4,11 +4,11 @@ from pymisp import ExpandedPyMISP, PyMISP, MISPEvent, MISPAttribute, MISPObject
 from datetime import date
 import urllib3
 
+# add your own MISP instance and creds to keys.py
+import keys
+
 # DEBUG
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-misp_url = ''
-misp_key = ''
 
 def get_attribute_type(attribute):
     pattern = re.compile('^(\d{1,3}\.){3}\d{1,3}$')
@@ -93,7 +93,7 @@ def main():
 
     
     # add results to MISP
-    pymisp = PyMISP(misp_url, misp_key False, 'json')
+    pymisp = PyMISP(keys.misp_url, keys.misp_key False, 'json')
 
     # create todays MISP Event
     misp_event = MISPEvent()
