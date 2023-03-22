@@ -1,0 +1,2 @@
+misp_url = "https://misp.example.com"
+misp_key = "YOUR_MISP_API_KEY"
