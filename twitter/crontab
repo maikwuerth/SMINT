@@ -1,0 +1,2 @@
+# run every day
+0 1 * * * cd /usr/src/app && python twitter-misp.py >> cron_log.log 2>&1

@@ -3,6 +3,7 @@ import re
 from pymisp import ExpandedPyMISP, PyMISP, MISPEvent, MISPAttribute, MISPObject
 from datetime import datetime, date, timedelta
 import urllib3
+import json
 
 # add your own MISP instance and creds to keys.py
 import keys
@@ -20,7 +21,7 @@ def get_attribute_type(attribute):
     else:
         return 'ioc-domain'
 
-# de-defang or refang urls, IPs, etc. 
+# de-defang or refang urls, IPs, etc.
 def refang(text):
     text = text.replace('[', '')
     text = text.replace(']', '')
@@ -53,7 +54,8 @@ def matches_any(text, expressions):
     return False
 
 def main():
-    yesterday = date.today() - timedelta(days=1)
+    today = date.today()
+    yesterday = today - timedelta(days=1)
 
     # read ids of twitter lists to scrape
     list_ids = []
@@ -72,9 +74,9 @@ def main():
         for count, tweet in enumerate(TwitterListPostsScraper(list_id).get_items()):
             if count>1000:
                 break
-            # match defanged
+            # match defanged and tweets from either today or yesterday
             text = tweet.rawContent.lower()
-            if matches_any(text, match_exp):
+            if matches_any(text, match_exp) and (tweet.date.date() == yesterday or tweet.date.date() == today):
                 iocs = extract_ioc(text)
                 output.append({
                     'iocs': iocs,
@@ -83,24 +85,21 @@ def main():
                     'url': tweet.url,
                     'date': tweet.date
                 })
-                print({output[-1]['iocs'], output[-1]['hashtags']})
+                print(iocs)
 
     # filter output
     tmp = []
     for i in range(len(output)):
         # deduplicate
         if output[i] not in output[i + 1:]:
-            # only tweets from yesterday
-            result_date = datetime.strptime(output[i]['date'], "%Y-%m-%d %H:%M:%S%z")
-            if result_date > result_date.date():
-                tmp.append(output[i])
-    
+            tmp.append(output[i])
+
     output = tmp
 
     # exit if we dont have any results
     if len(output) == 0:
         exit()
-    
+
     # add results to MISP
     pymisp = PyMISP(keys.misp_url, keys.misp_key, False, 'json')
 
@@ -121,12 +120,13 @@ def main():
         misp_object.add_attribute('tweet-link', tweet['url'])
         misp_object.add_attribute('tweet-text', tweet['text'])
         misp_object.add_attribute('tweet-date', tweet['date'])
-        for hashtag in tweet['hashtags']:
-            misp_object.add_attribute('tweet-hashtag', hashtag)
+        if 'hashtag' in tweet:
+            for hashtag in tweet['hashtags']:
+                misp_object.add_attribute('tweet-hashtag', hashtag)
         for ioc in tweet['iocs']:
             misp_object.add_attribute(get_attribute_type(ioc), ioc)
         misp_event.add_object(misp_object)
-    
+
     # push MISPEvent
     pymisp.add_event(misp_event)
 
