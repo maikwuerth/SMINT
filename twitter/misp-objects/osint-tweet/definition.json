@@ -35,7 +35,13 @@
       "ioc-ip": {
         "description": "De-Defanged IP from tweet",
         "disable_correlation": false,
-        "misp-attribute": "ip-dst",
+        "misp-attribute": "ip-src",
+        "ui-priority": 1
+      },
+      "ioc-ip-port": {
+        "description": "De-Defanged IP and port from tweet",
+        "disable_correlation": false,
+        "misp-attribute": "ip-src|port",
         "ui-priority": 1
       },
       "ioc-domain": {

@@ -12,9 +12,12 @@ import keys
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def get_attribute_type(attribute):
-    pattern = re.compile('^(\d{1,3}\.){3}\d{1,3}$')
+    pattern = re.compile('^(\d{1,3}\.){3}\d{1,3}(:\d{2,6})?$')
     if pattern.match(attribute):
-        return 'ioc-ip'
+        if ':' in attribute:
+            return 'ioc-ip-port'
+        else:
+            return 'ioc-ip'
     pattern = re.compile('^(http|ftp)')
     if pattern.match(attribute):
         return 'ioc-url'
