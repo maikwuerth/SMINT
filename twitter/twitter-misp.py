@@ -123,7 +123,7 @@ def main():
         misp_object.add_attribute('tweet-link', tweet['url'])
         misp_object.add_attribute('tweet-text', tweet['text'])
         misp_object.add_attribute('tweet-date', tweet['date'])
-        if 'hashtags' in tweet:
+        if 'hashtags' in tweet and isinstance(tweet['hashtags'], list):
             for hashtag in tweet['hashtags']:
                 misp_object.add_attribute('tweet-hashtag', hashtag)
         for ioc in tweet['iocs']:
