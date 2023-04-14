@@ -32,6 +32,12 @@ def refang(text):
     text = text.replace('hxxps:', 'https:')
     text = text.replace('fxp:', 'ftp:')
     text = text.replace('fsxp:', 'fstp:')
+    text = text.replace(',', '.')
+    text = text.replace(' p://', ' http://')
+    text = text.replace(' s://', ' https://')
+    text = text.replace('(http): /', 'http:/')
+    text = text.replace('(https): /', 'https:/')
+    text = text.replace('\\.', '.')
     return text
 
 # return all links, IPs, urls contained in tweet. except t.co
@@ -39,7 +45,7 @@ def extract_ioc(text):
     text = refang(text)
     matches = []
     # match all urls
-    expression = '(?:https?:\\/\\/)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)'
+    expression = '(?:https?:\\/\\/|smb:\\/\\/)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)'
     pattern = re.compile(expression)
     matches = pattern.findall(text)
     # exclude twitter links and images starting with t.co
